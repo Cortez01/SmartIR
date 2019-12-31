@@ -9,7 +9,8 @@ from homeassistant.components.media_player import (
     MediaPlayerDevice, PLATFORM_SCHEMA)
 from homeassistant.components.media_player.const import (
     SUPPORT_TURN_OFF, SUPPORT_TURN_ON, SUPPORT_PREVIOUS_TRACK,
-    SUPPORT_NEXT_TRACK, SUPPORT_VOLUME_STEP, SUPPORT_VOLUME_MUTE, 
+    SUPPORT_NEXT_TRACK, SUPPORT_PAUSE, SUPPORT_PLAY,
+    SUPPORT_VOLUME_STEP, SUPPORT_VOLUME_MUTE, 
     SUPPORT_SELECT_SOURCE, MEDIA_TYPE_CHANNEL)
 from homeassistant.const import (
     CONF_NAME, STATE_OFF, STATE_ON, STATE_UNKNOWN)
@@ -109,6 +110,12 @@ class SmartIRMediaPlayer(MediaPlayerDevice, RestoreEntity):
 
         if 'on' in self._commands and self._commands['on'] is not None:
             self._support_flags = self._support_flags | SUPPORT_TURN_ON
+            
+        if 'play' in self._commands and self._commands['play'] is not None:
+            self._support_flags = self._support_flags | SUPPORT_PLAY
+
+        if 'pause' in self._commands and self._commands['pause'] is not None:
+            self._support_flags = self._support_flags | SUPPORT_PAUSE
 
         if 'previousChannel' in self._commands and self._commands['previousChannel'] is not None:
             self._support_flags = self._support_flags | SUPPORT_PREVIOUS_TRACK
@@ -230,7 +237,17 @@ class SmartIRMediaPlayer(MediaPlayerDevice, RestoreEntity):
         if self._power_sensor is None:
             self._state = STATE_ON
             await self.async_update_ha_state()
-
+            
+    async def async_media_play(self, mute):
+        """Send play track command."""
+        await self.send_command(self._commands['play'])
+        await self.async_update_ha_state()
+        
+    async def async_media_pause(self, mute):
+        """Send pause track command."""
+        await self.send_command(self._commands['pause'])
+        await self.async_update_ha_state()    
+        
     async def async_media_previous_track(self):
         """Send previous track command."""
         await self.send_command(self._commands['previousChannel'])
